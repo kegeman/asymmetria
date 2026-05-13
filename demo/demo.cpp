@@ -4,6 +4,9 @@
 #include "pch.h"
 #include "framework.h"
 #include "demo.h"
+#include "frame.h"
+#pragma comment( lib, "frame.lib" )
+FrameFactory gFrameFactory; // Application context
 
 #define MAX_LOADSTRING 100
 

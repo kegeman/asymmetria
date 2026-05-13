@@ -3,5 +3,8 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="demo/demo.vcxproj" />
+  <Project Path="demo/demo.vcxproj" Id="b1cce6c2-afeb-4052-bb1e-5932af6a15d3">
+    <BuildDependency Project="frame/frame.vcxproj" />
+  </Project>
+  <Project Path="frame/frame.vcxproj" Id="9c2f4669-31e1-4c63-b8d4-514f1d1fe188" />
 </Solution>
