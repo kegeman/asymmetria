@@ -7,7 +7,7 @@
 
 FrameFactory::FrameFactory(void)
 {
-	this->frame = NULL;
+	this->frame = nullptr;
 }
 
 FrameFactory::~FrameFactory(void)
