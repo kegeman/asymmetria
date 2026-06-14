@@ -1,10 +1,12 @@
-﻿// demo.cpp : Definiuje punkt wejścia dla aplikacji.
-//
+﻿// demo.cpp : Definiuje punkt wejścia aplikacji.
 
 #include "pch.h"
-#include "framework.h"
-#include "demo.h"
+#if defined(_MSC_VER) && (defined(_DEBUG) || defined(DEBUG))
+    #include <crtdbg.h>
+#endif
 #include "frame.h"
+#include "demo.h"
+
 #pragma comment( lib, "frame.lib" )
 FrameFactory gFrameFactory; // Application context
 
@@ -21,42 +23,29 @@ BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
-int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-                     _In_opt_ HINSTANCE hPrevInstance,
-                     _In_ LPWSTR    lpCmdLine,
-                     _In_ int       nCmdShow)
+int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-    // TODO: W tym miejscu umieść kod.
+#if defined(_MSC_VER) && (defined(_DEBUG) || defined(DEBUG))
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
 
-    // Inicjuj ciągi globalne
-    LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-    LoadStringW(hInstance, IDC_DEMO, szWindowClass, MAX_LOADSTRING);
-    MyRegisterClass(hInstance);
-
-    // Wykonaj inicjowanie aplikacji:
-    if (!InitInstance (hInstance, nCmdShow))
+    int iReturnValue = 0;
+    try
     {
-        return FALSE;
+        FrameInit sFrameInit = FrameInit(hInstance, nCmdShow);
+        Frame* pFrame = gFrameFactory.CreateFrame(sFrameInit);
+        iReturnValue = pFrame->Run();
     }
-
-    HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_DEMO));
-
-    MSG msg;
-
-    // Główna pętla komunikatów:
-    while (GetMessage(&msg, nullptr, 0, 0))
+    catch (...)
     {
-        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
-        {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
+        // TODO: clean up
+        return 1;
     }
-
-    return (int) msg.wParam;
+    // TODO: clean up
+    return iReturnValue;
 }
 
 

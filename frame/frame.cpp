@@ -2,7 +2,6 @@
 //
 
 #include "pch.h"
-#include "framework.h"
 #include "frame.h"
 
 FrameFactory::FrameFactory(void)

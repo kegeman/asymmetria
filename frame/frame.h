@@ -1,7 +1,7 @@
 #pragma once
 
 #ifndef SAFE_DELETE
-#define SAFE_DELETE(p)       { if (p) { delete (p); (p)=nullptr; } }
+	#define SAFE_DELETE(p) { if (p) { delete (p); (p)=nullptr; } }
 #endif
 
 struct FrameInit {
@@ -10,6 +10,11 @@ struct FrameInit {
 };
 
 class Frame {
+public:
+	Frame(void);
+	virtual ~Frame(void);
+	virtual void Create(const FrameInit& init) = 0;
+	virtual int Run(void) = 0;
 };
 
 class FrameFactory {
@@ -18,5 +23,5 @@ private:
 public:
 	FrameFactory(void);
 	~FrameFactory(void);
-	Frame* CreateFrame(const FrameInit& init);
+	Frame* CreateFrame(const FrameInit & init);
 };

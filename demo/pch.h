@@ -7,7 +7,6 @@
 #ifndef PCH_H
 #define PCH_H
 
-// w tym miejscu dodaj nagłówki, które mają być wstępnie kompilowane
 #include "framework.h"
 
 #endif //PCH_H
