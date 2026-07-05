@@ -1,20 +1,30 @@
-﻿// frame.cpp : Definiuje funkcje biblioteki statycznej.
-//
+﻿#include "PCH.h"
+#include "Frame.h"
+#include "DirectFrame.h"
 
-#include "pch.h"
-#include "frame.h"
+// Frame
+Frame::Frame(void) {}
+Frame::~Frame(void) {}
 
+// FrameFactory
 FrameFactory::FrameFactory(void)
 {
 	this->frame = nullptr;
+
+	//TODO: Logging initialisation
 }
 
 FrameFactory::~FrameFactory(void)
 {
 	SAFE_DELETE(this->frame);
+
+	//TODO: Logging destroying
 }
 
 Frame* FrameFactory::CreateFrame(const FrameInit& init)
 {
-	return nullptr;
+	assert(this->frame == nullptr);
+	this->frame = new DirectFrame();
+	this->frame->Create(init);
+	return this->frame;
 }

@@ -7,6 +7,7 @@
 struct FrameInit {
 	HINSTANCE hInstance;
 	int nCmdShow;
+	const wchar_t* WindowTitle;
 };
 
 class Frame {

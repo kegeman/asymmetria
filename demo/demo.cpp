@@ -1,10 +1,10 @@
 ﻿// demo.cpp : Definiuje punkt wejścia aplikacji.
 
-#include "pch.h"
+#include "PCH.h"
 #if defined(_MSC_VER) && (defined(_DEBUG) || defined(DEBUG))
     #include <crtdbg.h>
 #endif
-#include "frame.h"
+#include "Frame.h"
 #include "demo.h"
 
 #pragma comment( lib, "frame.lib" )
@@ -35,7 +35,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     int iReturnValue = 0;
     try
     {
-        FrameInit sFrameInit = FrameInit(hInstance, nCmdShow);
+        FrameInit sFrameInit = FrameInit(hInstance, nCmdShow, L"Asymmetria");
         Frame* pFrame = gFrameFactory.CreateFrame(sFrameInit);
         iReturnValue = pFrame->Run();
     }

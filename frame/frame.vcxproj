@@ -139,18 +139,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="frame.h" />
-    <ClInclude Include="framework.h" />
-    <ClInclude Include="pch.h" />
+    <ClInclude Include="DirectFrame.h" />
+    <ClInclude Include="Frame.h" />
+    <ClInclude Include="Framework.h" />
+    <ClInclude Include="Logs.h" />
+    <ClInclude Include="PCH.h" />
+    <ClInclude Include="Present.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="frame.cpp" />
-    <ClCompile Include="pch.cpp">
+    <ClCompile Include="DirectFrame.cpp" />
+    <ClCompile Include="Frame.cpp" />
+    <ClCompile Include="Logs.cpp" />
+    <ClCompile Include="PCH.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Present.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
