@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Frame.h"
+#include "Present.h"
 
 #define ADJUST_WINDOW_RECTANGLE
 
@@ -9,6 +10,7 @@ class DirectFrame : public Frame
 private:
 	HINSTANCE hApplicationInstance;
 	HWND hWindow;
+	PresentFactory presentFactory;
 public:
 	DirectFrame(void);
 	virtual ~DirectFrame(void);

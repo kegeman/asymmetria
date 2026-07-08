@@ -145,6 +145,8 @@
     <ClInclude Include="Logs.h" />
     <ClInclude Include="PCH.h" />
     <ClInclude Include="Present.h" />
+    <ClInclude Include="PresentDX12.h" />
+    <ClInclude Include="Types.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DirectFrame.cpp" />
@@ -157,6 +159,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Present.cpp" />
+    <ClCompile Include="PresentDX12.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,7 +1,8 @@
-#include "pch.h"
+#include "PCH.h"
 #include "DirectFrame.h"
+#include "Present.h"
 
-const LPCWSTR DirectFrame::sClassName = L"FR_DirectFrame";
+const LPCWSTR DirectFrame::sClassName = L"DirectFrame";
 
 DirectFrame::DirectFrame(void) : hApplicationInstance(nullptr), hWindow(nullptr) {}
 
@@ -22,10 +23,10 @@ void DirectFrame::Create(const FrameInit& init)
 	UpdateWindow(hWindow);
 
 	// Presenting mechanisms
-	FR_PresentInit PresentInit = FR_PresentInit(hWindow);
-	PresentFactory.CreatePresent(PresentInit);
+	PresentInit presentInit = PresentInit(hWindow);
+	presentFactory.CreatePresent(presentInit);
 
-	LOG(L"The FR_DirectFrame is ready to run.");
+	LOG(L"The DirectFrame is ready to run.");
 }
 
 int DirectFrame::Run(void)

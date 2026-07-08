@@ -10,15 +10,11 @@ Frame::~Frame(void) {}
 FrameFactory::FrameFactory(void)
 {
 	this->frame = nullptr;
-
-	//TODO: Logging initialisation
 }
 
 FrameFactory::~FrameFactory(void)
 {
 	SAFE_DELETE(this->frame);
-
-	//TODO: Logging destroying
 }
 
 Frame* FrameFactory::CreateFrame(const FrameInit& init)
