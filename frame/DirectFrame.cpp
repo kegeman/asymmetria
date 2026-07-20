@@ -101,7 +101,7 @@ HWND DirectFrame::CreateInstanceWindow(const wchar_t* sWindowTitle)
 	hWindow = CreateWindow(sClassName, sWindowTitle, style, 100, 100, width, height, NULL, NULL, hApplicationInstance, this);
 	if (hWindow == NULL)
 	{
-		LLE();
+		LLE()
 		//TODO: throw Exception(L"CreateInstanceWindow method failed!");
 	}
 	return hWindow;
