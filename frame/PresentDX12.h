@@ -25,6 +25,8 @@ private:
 	mutable HRESULT hr;
 	PresentInit init;
 	ID3D12Debug* pDebugController;
+	D3D_FEATURE_LEVEL FeatureLevel;
+	ID3D12Device* pDevice;
 
 public:
 	PresentDX12(void);

@@ -4,11 +4,13 @@
 PresentDX12::PresentDX12(void) 
 {
 	this->pDebugController = nullptr;
+	this->pDevice = nullptr;
 }
 
 PresentDX12::~PresentDX12(void)
 {
 	SAFE_RELEASE(this->pDebugController)
+	SAFE_RELEASE(this->pDevice) // at the end
 }
 
 void PresentDX12::Create(const PresentInit& init)
@@ -58,7 +60,25 @@ void PresentDX12::Create(const PresentInit& init)
 	};
 	UINT FeatureLevelsCount = sizeof(FeatureLevels) / sizeof(FeatureLevels[0]); 
 
+	this->FeatureLevel = D3D_FEATURE_LEVEL_9_1;
+	this->pDevice = nullptr;
 
+	for (UINT DriverTypesIndex = 0; DriverTypesIndex < DriverTypesCount; DriverTypesIndex++)
+	{
+		D3D_DRIVER_TYPE DriverType = DriverTypes[DriverTypesIndex];
+		LOGD(L"The PresentDX12::Create method is calling the D3D12CreateDeviceAndSwapChain method.");
+		LR(D3D12CreateDevice(pAdapter, this->FeatureLevel, IID_PPV_ARGS(&this->pDevice)))
+		if (hr == S_OK) break;
+		if (hr == S_FALSE) 
+		{
+			LOGW(L"Warning! D3D11CreateDeviceAndSwapChain method returned alternate success value: S_FALSE.");
+			break;
+		}
+		if (hr != S_OK && hr != S_FALSE)
+		{
+			throw Exception(L"The PresentDX12::Create method failed!");
+		}
+	}
 	//TODO: dalej.............
 
 	LOGD(L"The PresentDX12::Create method has been executed.")
@@ -66,7 +86,7 @@ void PresentDX12::Create(const PresentInit& init)
 
 void PresentDX12::Render(void)
 {
-	//TODO:
+	//TODO: ?
 }
 
 void PresentDX12::GetDefaultSwapChainDesc(DXGI_SWAP_CHAIN_DESC& SwapChainDesc) const
