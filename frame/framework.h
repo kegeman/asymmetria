@@ -9,6 +9,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <WinUser.h>
+#include <WinBase.h>
 
 #include <stdio.h>
 #include <time.h>

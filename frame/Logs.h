@@ -1,28 +1,27 @@
 #pragma once
+#include "Framework.h"
+#include <iostream>
 
-namespace Auxiliary
-{
-	//////////////////////////////////////////////////////////////////////
-	#if defined(LOGGING)
+#if defined(LOGGING)
 	#ifndef LOG
-	#define LOG(x)			{ CharlieAux::Logs::Instance->WriteLine(CharlieAux::Logs::Information, x); }
+	#define LOG(x)			{ std::cout << "INFO: " << x << std::endl; }
 	#endif
 	#ifndef LOGD
-	#define LOGD(x)			{ CharlieAux::Logs::Instance->WriteLine(CharlieAux::Logs::Debug, x); }
+	#define LOGD(x)			{ std::cout << "DEBUG: " << x << std::endl; }
 	#endif
 	#ifndef LOGW
-	#define LOGW(x)			{ CharlieAux::Logs::Instance->WriteLine(CharlieAux::Logs::Warning, x); }
+	#define LOGW(x)			{ std::cout << "WARN: " << x << std::endl; }
 	#endif
 	#ifndef LOGE
-	#define LOGE(x)			{ CharlieAux::Logs::Instance->WriteLine(CharlieAux::Logs::Error, x); }
+	#define LOGE(x)			{ std::cout << "ERROR: " << x << std::endl; }
 	#endif
 	#ifndef LLE
-	#define LLE()           { CharlieAux::Logs::Instance->LogLastError(); }
+	#define LLE()           { Logs::LogLastError(); }
 	#endif
 	#ifndef LR
-	#define LR(x)			{ hr = (x); if( FAILED(hr) ) { CharlieAux::Logs::Instance->LogResult( hr, L#x); } }
+	#define LR(x)			{ hr = (x); if( FAILED(hr) ) { Logs::LogResult( hr, L#x); } }
 	#endif
-	#else
+#else
 	#ifndef LOG
 	#define LOG(x)			{}
 	#endif
@@ -41,9 +40,11 @@ namespace Auxiliary
 	#ifndef LR
 	#define LR(x)			{ hr = (x); }
 	#endif
-	#endif
-	//////////////////////////////////////////////////////////////////////
+#endif
 
-	class Logs
-	{};
-}
+class Logs
+{
+public:
+	static void LogLastError(void);
+	static void LogResult(HRESULT hr, const wchar_t* sMessage);
+};

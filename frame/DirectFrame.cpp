@@ -26,14 +26,14 @@ void DirectFrame::Create(const FrameInit& init)
 	PresentInit presentInit = PresentInit(hWindow);
 	presentFactory.CreatePresent(presentInit);
 
-	LOG(L"The DirectFrame is ready to run.");
+	LOG("The DirectFrame is ready to run.");
 }
 
 int DirectFrame::Run(void)
 {
 	//TODO: Opracować inny sposób animacji od SetFrameMoveEventTimer();
 
-	LOG(L"Run! Entering into the main message loop.");
+	LOG("Run! Entering into the main message loop.");
 	MSG msg;
 	ZeroMemory(&msg, sizeof(msg));
 	while (msg.message != WM_QUIT)
@@ -54,7 +54,7 @@ void DirectFrame::RegisterWindowsClass()
 	BOOL bClassExists = GetClassInfoEx(hApplicationInstance, sClassName, &wcex);
 	if (bClassExists == 0)
 	{
-		LOGD(L"Windows' class registration.");
+		LOGD("Windows' class registration.");
 		wcex.cbSize = sizeof(WNDCLASSEX);
 		wcex.style = CS_CLASSDC | CS_HREDRAW | CS_VREDRAW;
 		wcex.lpfnWndProc = &DirectFrame::StaticMsgProc;
@@ -77,7 +77,7 @@ void DirectFrame::RegisterWindowsClass()
 
 BOOL DirectFrame::UnregisterWindowsClass() const
 {
-	LOGD(L"Windows' class unregistration.");
+	LOGD("Windows' class unregistration.");
 	return UnregisterClass(sClassName, this->hApplicationInstance);
 }
 
@@ -150,17 +150,17 @@ LRESULT WINAPI DirectFrame::MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 		//	}
 		//	return 0;
 		case WM_SIZE:
-			LOGD(L"WM_SIZE is being received by MsgProc function and not processed.");
+			LOGD("WM_SIZE is being received by MsgProc function and not processed.");
 			//	for(unsigned i = 0; i < RENDERING_DEVICE_COUNT; i++)
 			//		this->aRenderingDevice[i]->OnResizeWindow(LOWORD(lParam), HIWORD(lParam));
 				//TODO: Returning 0 or not would be better?
 			break;
 		case WM_CLOSE:
-			LOGD(L"WM_CLOSE is being received by MsgProc function.");
+			LOGD("WM_CLOSE is being received by MsgProc function.");
 			PostQuitMessage(0);
 			return 0;
 		case WM_DESTROY:
-			LOGD(L"WM_DESTROY is being received by MsgProc function.");
+			LOGD("WM_DESTROY is being received by MsgProc function.");
 			PostQuitMessage(0);
 			return 0;
 		case WM_PAINT:

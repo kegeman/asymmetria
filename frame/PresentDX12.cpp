@@ -1,5 +1,7 @@
 #include "PCH.h"
 #include "PresentDX12.h"
+#include <iostream>
+#include <stdexcept>
 
 PresentDX12::PresentDX12(void) 
 {
@@ -15,7 +17,7 @@ PresentDX12::~PresentDX12(void)
 
 void PresentDX12::Create(const PresentInit& init)
 {
-	LOGD(L"The PresentDX12::Create method is being executed.")
+	LOGD("The PresentDX12::Create method is being executed.")
 	this->init = init;
 
 	//TODO: SetFullscreen
@@ -66,22 +68,22 @@ void PresentDX12::Create(const PresentInit& init)
 	for (UINT DriverTypesIndex = 0; DriverTypesIndex < DriverTypesCount; DriverTypesIndex++)
 	{
 		D3D_DRIVER_TYPE DriverType = DriverTypes[DriverTypesIndex];
-		LOGD(L"The PresentDX12::Create method is calling the D3D12CreateDeviceAndSwapChain method.");
+		LOGD("The PresentDX12::Create method is calling the D3D12CreateDeviceAndSwapChain method.");
 		LR(D3D12CreateDevice(pAdapter, this->FeatureLevel, IID_PPV_ARGS(&this->pDevice)))
 		if (hr == S_OK) break;
 		if (hr == S_FALSE) 
 		{
-			LOGW(L"Warning! D3D11CreateDeviceAndSwapChain method returned alternate success value: S_FALSE.");
+			LOGW("Warning! D3D11CreateDeviceAndSwapChain method returned alternate success value: S_FALSE.");
 			break;
 		}
 		if (hr != S_OK && hr != S_FALSE)
 		{
-			throw Exception(L"The PresentDX12::Create method failed!");
+			throw std::runtime_error("EXCEPTION: The PresentDX12::Create method failed!");
 		}
 	}
 	//TODO: dalej.............
 
-	LOGD(L"The PresentDX12::Create method has been executed.")
+	LOGD("The PresentDX12::Create method has been executed.")
 }
 
 void PresentDX12::Render(void)
@@ -131,7 +133,7 @@ DXGI_OUTPUT_DESC PresentDX12::GetDefaultOutputDesc(IDXGIAdapter1** ppAdapter) co
 	std::vector<IDXGIAdapter1*> vAdapters = EnumerateAdapters1();
 	if (vAdapters.empty())
 	{
-		LOGE(L"There are no graphics adapters detected by IDXGIFactory interface!");
+		LOGE("There are no graphics adapters detected by IDXGIFactory interface!");
 	}
 	else
 	{
@@ -141,7 +143,7 @@ DXGI_OUTPUT_DESC PresentDX12::GetDefaultOutputDesc(IDXGIAdapter1** ppAdapter) co
 			std::vector<IDXGIOutput*> vOutputs = EnumerateOutputs(*itAdapters);
 			if (vOutputs.empty())
 			{
-				LOGW(L"There are no outputs for one of graphics adapters detected by IDXGIFactory interface!");
+				LOGW("There are no outputs for one of graphics adapters detected by IDXGIFactory interface!");
 			}
 			else
 			{
@@ -157,7 +159,7 @@ DXGI_OUTPUT_DESC PresentDX12::GetDefaultOutputDesc(IDXGIAdapter1** ppAdapter) co
 					}
 					else
 					{
-						LOG(L"Output not attached to desktop is being encountered.");
+						LOG("Output not attached to desktop is being encountered.");
 					}
 				}
 			}
@@ -203,6 +205,6 @@ DXGI_OUTPUT_DESC PresentDX12::GetOutputDesc(IDXGIOutput* const pOutput) const
 	DXGI_OUTPUT_DESC OutputDescription;
 	ZeroMemory(&OutputDescription, sizeof(DXGI_OUTPUT_DESC));
 	LR(pOutput->GetDesc(&OutputDescription));
-	if (FAILED(hr)) LOGE(L"The IDXGIOutput::GetDesc method has failed!");
+	if (FAILED(hr)) LOGE("The IDXGIOutput::GetDesc method has failed!");
 	return OutputDescription;
 }
