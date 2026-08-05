@@ -17,6 +17,7 @@
 #include <d3d12sdklayers.h>
 
 #pragma comment( lib, "dxgi.lib" )
+#pragma comment( lib, "dxguid.lib" )
 #pragma comment( lib, "d3d12.lib" )
 
 class PresentDX12 : public Present
@@ -27,6 +28,7 @@ private:
 	ID3D12Debug* pDebugController;
 	D3D_FEATURE_LEVEL FeatureLevel;
 	ID3D12Device* pDevice;
+	ID3D12Fence* pFence;
 
 public:
 	PresentDX12(void);

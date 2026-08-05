@@ -81,6 +81,12 @@ void PresentDX12::Create(const PresentInit& init)
 			throw std::runtime_error("EXCEPTION: The PresentDX12::Create method failed!");
 		}
 	}
+
+	const char device_name[] = "PresentDX12::pDevice";
+	this->pDevice->SetPrivateData(WKPDID_D3DDebugObjectName, sizeof(device_name) - 1, device_name);
+	this->pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&this->pFence));
+
+
 	//TODO: dalej.............
 
 	LOGD("The PresentDX12::Create method has been executed.")
