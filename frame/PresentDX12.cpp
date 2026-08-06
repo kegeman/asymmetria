@@ -3,18 +3,31 @@
 #include <iostream>
 #include <stdexcept>
 
-PresentDX12::PresentDX12(void)
-{
-	this->pDebugController = nullptr;
-	this->pDevice = nullptr;
-	this->pFence = nullptr;
-	this->pCommandQueue = nullptr;
-	this->pCommandAllocator = nullptr;
-	this->pCommandList = nullptr;
-}
+PresentDX12::PresentDX12() :
+    hr(S_OK),
+    init(),
+    pDebugController(nullptr),
+    FeatureLevel(D3D_FEATURE_LEVEL_9_1),
+    pDevice(nullptr),
+    pFence(nullptr),
+    uiRtvDescriptorSize(0),
+    uiDsvDescriptorSize(0),
+    uiCbvDescriptorSize(0),
+    pCommandQueue(nullptr),
+    pCommandAllocator(nullptr),
+    pCommandList(nullptr),
+    pDxgiFactory(nullptr),
+    pSwapChain(nullptr),
+    pRtvHeap(nullptr),
+    pDsvHeap(nullptr)
+{}
 
 PresentDX12::~PresentDX12(void)
 {
+	SAFE_RELEASE(this->pDsvHeap)
+	SAFE_RELEASE(this->pRtvHeap)
+	SAFE_RELEASE(this->pSwapChain)
+	SAFE_RELEASE(this->pDxgiFactory)
 	SAFE_RELEASE(this->pCommandList)
 	SAFE_RELEASE(this->pCommandAllocator)
 	SAFE_RELEASE(this->pCommandQueue)
@@ -28,9 +41,9 @@ void PresentDX12::Create(const PresentInit& init)
 	LOGD("The PresentDX12::Create method is being executed.")
 	this->init = init;
 
-	//TODO: SetFullscreen
-	//TODO: OnResize
-	//TODO: Resize buffers
+	//TODO: SetFullscreen?
+	//TODO: OnResize?
+	//TODO: Resize buffers?
 
 	DXGI_SWAP_CHAIN_DESC SwapChainDesc;
 	GetDefaultSwapChainDesc(SwapChainDesc);
@@ -77,7 +90,7 @@ void PresentDX12::Create(const PresentInit& init)
 	{
 		D3D_DRIVER_TYPE DriverType = DriverTypes[DriverTypesIndex];
 		LOGD("The PresentDX12::Create method is calling the D3D12CreateDeviceAndSwapChain method.");
-		LR(D3D12CreateDevice(pAdapter, this->FeatureLevel, IID_PPV_ARGS(&this->pDevice)))
+		LR(D3D12CreateDevice(pAdapter, this->FeatureLevel, IID_PPV_ARGS(&pDevice)))
 		if (hr == S_OK) break;
 		if (hr == S_FALSE) 
 		{
@@ -92,14 +105,15 @@ void PresentDX12::Create(const PresentInit& init)
 
 	const char device_name[] = "PresentDX12::pDevice";
 	this->pDevice->SetPrivateData(WKPDID_D3DDebugObjectName, sizeof(device_name) - 1, device_name);
-	this->pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&this->pFence));
+	this->pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&pFence));
 	this->uiRtvDescriptorSize = this->pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	this->uiDsvDescriptorSize = this->pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 	this->uiCbvDescriptorSize = this->pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	//TODO: CheckFeatureSupport
+	//TODO: CheckFeatureSupport?
 	CreateCommandQueueAndList();
-
-	//TODO: dalej.............
+	CreateDXGIFactory1(IID_PPV_ARGS(&pDxgiFactory));
+	this->pDxgiFactory->CreateSwapChain(pCommandQueue, &SwapChainDesc, &pSwapChain);
+	CreateDescriptorHeaps();
 
 	LOGD("The PresentDX12::Create method has been executed.")
 }
@@ -236,4 +250,22 @@ void PresentDX12::CreateCommandQueueAndList(void)
 	this->pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&pCommandAllocator));
 	this->pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, pCommandAllocator, nullptr, IID_PPV_ARGS(&pCommandList));
 	this->pCommandList->Close();
+}
+
+void PresentDX12::CreateDescriptorHeaps()
+{
+	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
+	rtvHeapDesc.NumDescriptors = PresentDX12::iSwapChainBufferCount;
+	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	rtvHeapDesc.NodeMask = 0;
+	this->pDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&pRtvHeap));
+
+
+	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc;
+	dsvHeapDesc.NumDescriptors = 1;
+	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+	dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	dsvHeapDesc.NodeMask = 0;
+	this->pDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&pDsvHeap));
 }

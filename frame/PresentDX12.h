@@ -35,6 +35,10 @@ private:
 	ID3D12CommandQueue* pCommandQueue;
 	ID3D12CommandAllocator* pCommandAllocator;
 	ID3D12GraphicsCommandList* pCommandList;
+	IDXGIFactory1* pDxgiFactory;
+	IDXGISwapChain* pSwapChain;
+	ID3D12DescriptorHeap* pRtvHeap;
+	ID3D12DescriptorHeap* pDsvHeap;
 
 public:
 	PresentDX12(void);
@@ -50,5 +54,8 @@ private:
 	std::vector<IDXGIOutput*> EnumerateOutputs(IDXGIAdapter1* const pAdapter) const;
 	DXGI_OUTPUT_DESC GetOutputDesc(IDXGIOutput* const pOutput) const;
 	void CreateCommandQueueAndList(void);
-};
+	void CreateDescriptorHeaps(void);
 
+private:
+	static const int iSwapChainBufferCount = 2;
+};
