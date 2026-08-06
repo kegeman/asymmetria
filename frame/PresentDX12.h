@@ -29,6 +29,12 @@ private:
 	D3D_FEATURE_LEVEL FeatureLevel;
 	ID3D12Device* pDevice;
 	ID3D12Fence* pFence;
+	UINT uiRtvDescriptorSize;
+	UINT uiDsvDescriptorSize;
+	UINT uiCbvDescriptorSize;
+	ID3D12CommandQueue* pCommandQueue;
+	ID3D12CommandAllocator* pCommandAllocator;
+	ID3D12GraphicsCommandList* pCommandList;
 
 public:
 	PresentDX12(void);
@@ -43,5 +49,6 @@ private:
 	std::vector<IDXGIAdapter1*> EnumerateAdapters1(void) const;
 	std::vector<IDXGIOutput*> EnumerateOutputs(IDXGIAdapter1* const pAdapter) const;
 	DXGI_OUTPUT_DESC GetOutputDesc(IDXGIOutput* const pOutput) const;
+	void CreateCommandQueueAndList(void);
 };
 

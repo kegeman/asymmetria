@@ -3,14 +3,22 @@
 #include <iostream>
 #include <stdexcept>
 
-PresentDX12::PresentDX12(void) 
+PresentDX12::PresentDX12(void)
 {
 	this->pDebugController = nullptr;
 	this->pDevice = nullptr;
+	this->pFence = nullptr;
+	this->pCommandQueue = nullptr;
+	this->pCommandAllocator = nullptr;
+	this->pCommandList = nullptr;
 }
 
 PresentDX12::~PresentDX12(void)
 {
+	SAFE_RELEASE(this->pCommandList)
+	SAFE_RELEASE(this->pCommandAllocator)
+	SAFE_RELEASE(this->pCommandQueue)
+	SAFE_RELEASE(this->pFence)
 	SAFE_RELEASE(this->pDebugController)
 	SAFE_RELEASE(this->pDevice) // at the end
 }
@@ -85,7 +93,11 @@ void PresentDX12::Create(const PresentInit& init)
 	const char device_name[] = "PresentDX12::pDevice";
 	this->pDevice->SetPrivateData(WKPDID_D3DDebugObjectName, sizeof(device_name) - 1, device_name);
 	this->pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&this->pFence));
-
+	this->uiRtvDescriptorSize = this->pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	this->uiDsvDescriptorSize = this->pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	this->uiCbvDescriptorSize = this->pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	//TODO: CheckFeatureSupport
+	CreateCommandQueueAndList();
 
 	//TODO: dalej.............
 
@@ -213,4 +225,15 @@ DXGI_OUTPUT_DESC PresentDX12::GetOutputDesc(IDXGIOutput* const pOutput) const
 	LR(pOutput->GetDesc(&OutputDescription));
 	if (FAILED(hr)) LOGE("The IDXGIOutput::GetDesc method has failed!");
 	return OutputDescription;
+}
+
+void PresentDX12::CreateCommandQueueAndList(void)
+{
+	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+	this->pDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&pCommandQueue));
+	this->pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&pCommandAllocator));
+	this->pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, pCommandAllocator, nullptr, IID_PPV_ARGS(&pCommandList));
+	this->pCommandList->Close();
 }
