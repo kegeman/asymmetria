@@ -7,7 +7,7 @@ PresentDX12::PresentDX12() :
     hr(S_OK),
     init(),
     pDebugController(nullptr),
-    FeatureLevel(D3D_FEATURE_LEVEL_9_1),
+    FeatureLevel(D3D_FEATURE_LEVEL_11_0),
     pDevice(nullptr),
     pFence(nullptr),
     uiRtvDescriptorSize(0),
@@ -74,22 +74,17 @@ void PresentDX12::Create(const PresentInit& init)
 		D3D_FEATURE_LEVEL_12_1,
 		D3D_FEATURE_LEVEL_12_0,
 		D3D_FEATURE_LEVEL_11_1,
-		D3D_FEATURE_LEVEL_11_0,
-		D3D_FEATURE_LEVEL_10_1,
-		D3D_FEATURE_LEVEL_10_0,
-		D3D_FEATURE_LEVEL_9_3,
-		D3D_FEATURE_LEVEL_9_2,
-		D3D_FEATURE_LEVEL_9_1
+		D3D_FEATURE_LEVEL_11_0
 	};
 	UINT FeatureLevelsCount = sizeof(FeatureLevels) / sizeof(FeatureLevels[0]); 
 
-	this->FeatureLevel = D3D_FEATURE_LEVEL_9_1;
+	this->FeatureLevel = D3D_FEATURE_LEVEL_11_0;
 	this->pDevice = nullptr;
 
 	for (UINT DriverTypesIndex = 0; DriverTypesIndex < DriverTypesCount; DriverTypesIndex++)
 	{
 		D3D_DRIVER_TYPE DriverType = DriverTypes[DriverTypesIndex];
-		LOGD("The PresentDX12::Create method is calling the D3D12CreateDeviceAndSwapChain method.");
+		LOGD("The PresentDX12::Create method is calling the D3D12CreateDevice method.");
 		LR(D3D12CreateDevice(pAdapter, this->FeatureLevel, IID_PPV_ARGS(&pDevice)))
 		if (hr == S_OK) break;
 		if (hr == S_FALSE) 
