@@ -15,6 +15,8 @@
 // #include <dxgi1_2.h>
 #include <d3d12.h>
 #include <d3d12sdklayers.h>
+//#include <d3dcompiler.h>
+#include "d3dx12.h"
 
 #pragma comment( lib, "dxgi.lib" )
 #pragma comment( lib, "dxguid.lib" )
@@ -39,12 +41,15 @@ private:
 	IDXGISwapChain* pSwapChain;
 	ID3D12DescriptorHeap* pRtvHeap;
 	ID3D12DescriptorHeap* pDsvHeap;
+	UINT64 uiCurrentFence;
+	UINT uiCurrentBackBuffer;
 
 public:
 	PresentDX12(void);
 	virtual ~PresentDX12(void);
 	virtual void Create(const PresentInit& init);
 	virtual void Render(void);
+	virtual void OnResizeWindow(const unsigned short width, const unsigned short height); // WM_SIZE
 
 private:
 	void GetDefaultSwapChainDesc(DXGI_SWAP_CHAIN_DESC& SwapChainDesc) const;
@@ -55,7 +60,8 @@ private:
 	DXGI_OUTPUT_DESC GetOutputDesc(IDXGIOutput* const pOutput) const;
 	void CreateCommandQueueAndList(void);
 	void CreateDescriptorHeaps(void);
+	void FlushCommandQueue(void);
 
 private:
-	static const int iSwapChainBufferCount = 2;
+	static const int iSwapChainBufferCount = 2;	
 };

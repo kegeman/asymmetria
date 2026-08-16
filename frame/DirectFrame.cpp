@@ -71,7 +71,7 @@ void DirectFrame::RegisterWindowsClass()
 
 		if (RegisterClassEx(&wcex) != 0) return;
 		LLE()
-		//TODO: throw Exception(L"RegisterWindowsClass method has failed!");
+		throw std::runtime_error("RegisterWindowsClass method has failed!");
 	}
 }
 
@@ -92,7 +92,7 @@ HWND DirectFrame::CreateInstanceWindow(const wchar_t* sWindowTitle)
 	if (AdjustWindowRect(&rc, style, FALSE) == 0)
 	{
 		LLE()
-		//TODO: throw Exception(L"CreateInstanceWindow method failed!");		
+		throw std::runtime_error("CreateInstanceWindow method failed!");
 	}
 	width = static_cast<int>(rc.right) - static_cast<int>(rc.left);
 	height = static_cast<int>(rc.bottom) - static_cast<int>(rc.top);
@@ -102,7 +102,7 @@ HWND DirectFrame::CreateInstanceWindow(const wchar_t* sWindowTitle)
 	if (hWindow == NULL)
 	{
 		LLE()
-		//TODO: throw Exception(L"CreateInstanceWindow method failed!");
+		throw std::runtime_error("CreateInstanceWindow method failed!");
 	}
 	return hWindow;
 }

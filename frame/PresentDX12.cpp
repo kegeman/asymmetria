@@ -19,7 +19,8 @@ PresentDX12::PresentDX12() :
     pDxgiFactory(nullptr),
     pSwapChain(nullptr),
     pRtvHeap(nullptr),
-    pDsvHeap(nullptr)
+    pDsvHeap(nullptr),
+	uiCurrentFence(0)
 {}
 
 PresentDX12::~PresentDX12(void)
@@ -116,6 +117,26 @@ void PresentDX12::Create(const PresentInit& init)
 void PresentDX12::Render(void)
 {
 	//TODO: ?
+}
+
+void PresentDX12::OnResizeWindow(const unsigned short width, const unsigned short height)
+{
+	assert(this->pDevice);
+	assert(this->pSwapChain);
+	assert(this->pCommandAllocator);
+	assert(this->pCommandList);
+
+	FlushCommandQueue();
+	LR(this->pCommandList->Reset(this->pCommandAllocator, nullptr))
+
+	//for (int i = 0; i < PresentDX12::iSwapChainBufferCount; ++i) mSwapChainBuffer[i].Reset();
+	//mDepthStencilBuffer.Reset();
+
+	LR(this->pSwapChain->ResizeBuffers(PresentDX12::iSwapChainBufferCount, width, height, DXGI_FORMAT_B8G8R8A8_UNORM, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH))
+	this->uiCurrentBackBuffer = 0;
+	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(this->pRtvHeap->GetCPUDescriptorHandleForHeapStart());
+
+	//TODO: dalej.....................
 }
 
 void PresentDX12::GetDefaultSwapChainDesc(DXGI_SWAP_CHAIN_DESC& SwapChainDesc) const
@@ -256,11 +277,25 @@ void PresentDX12::CreateDescriptorHeaps()
 	rtvHeapDesc.NodeMask = 0;
 	this->pDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&pRtvHeap));
 
-
 	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc;
 	dsvHeapDesc.NumDescriptors = 1;
 	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 	dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	dsvHeapDesc.NodeMask = 0;
 	this->pDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&pDsvHeap));
+}
+
+void PresentDX12::FlushCommandQueue(void)
+{
+	uiCurrentFence++;
+	LR(this->pCommandQueue->Signal(this->pFence, uiCurrentFence))
+
+	if (this->pFence->GetCompletedValue() < uiCurrentFence)
+	{
+		HANDLE eventHandle = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
+		LR(this->pFence->SetEventOnCompletion(uiCurrentFence, eventHandle))
+		// ...		
+		WaitForSingleObject(eventHandle, INFINITE);
+		CloseHandle(eventHandle);
+	}
 }
