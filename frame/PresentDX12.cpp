@@ -43,8 +43,6 @@ void PresentDX12::Create(const PresentInit& init)
 	this->init = init;
 
 	//TODO: SetFullscreen?
-	//TODO: OnResize?
-	//TODO: Resize buffers?
 
 	DXGI_SWAP_CHAIN_DESC SwapChainDesc;
 	GetDefaultSwapChainDesc(SwapChainDesc);
@@ -100,16 +98,21 @@ void PresentDX12::Create(const PresentInit& init)
 	}
 
 	const char device_name[] = "PresentDX12::pDevice";
-	this->pDevice->SetPrivateData(WKPDID_D3DDebugObjectName, sizeof(device_name) - 1, device_name);
-	this->pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&pFence));
+	LR(this->pDevice->SetPrivateData(WKPDID_D3DDebugObjectName, sizeof(device_name) - 1, device_name))
+	LR(this->pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&pFence)))
 	this->uiRtvDescriptorSize = this->pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	this->uiDsvDescriptorSize = this->pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 	this->uiCbvDescriptorSize = this->pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	//TODO: CheckFeatureSupport?
 	CreateCommandQueueAndList();
 	CreateDXGIFactory1(IID_PPV_ARGS(&pDxgiFactory));
-	this->pDxgiFactory->CreateSwapChain(pCommandQueue, &SwapChainDesc, &pSwapChain);
+	LR(this->pDxgiFactory->CreateSwapChain(pCommandQueue, &SwapChainDesc, &pSwapChain))
 	CreateDescriptorHeaps();
+
+	UINT width;
+	UINT height;
+	GetClientWidthAndHeight(width, height);
+	OnResizeWindow(static_cast<unsigned short>(width), static_cast<unsigned short>(height));
 
 	LOGD("The PresentDX12::Create method has been executed.")
 }
@@ -129,14 +132,75 @@ void PresentDX12::OnResizeWindow(const unsigned short width, const unsigned shor
 	FlushCommandQueue();
 	LR(this->pCommandList->Reset(this->pCommandAllocator, nullptr))
 
-	//for (int i = 0; i < PresentDX12::iSwapChainBufferCount; ++i) mSwapChainBuffer[i].Reset();
-	//mDepthStencilBuffer.Reset();
+	for (int i = 0; i < PresentDX12::iSwapChainBufferCount; ++i)
+		SAFE_RELEASE(this->pSwapChainBuffer[i])
+
+	SAFE_RELEASE(this->pDepthStencilBuffer)	
 
 	LR(this->pSwapChain->ResizeBuffers(PresentDX12::iSwapChainBufferCount, width, height, DXGI_FORMAT_B8G8R8A8_UNORM, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH))
 	this->uiCurrentBackBuffer = 0;
-	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(this->pRtvHeap->GetCPUDescriptorHandleForHeapStart());
 
-	//TODO: dalej.....................
+	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(this->pRtvHeap->GetCPUDescriptorHandleForHeapStart());
+	for (UINT i = 0; i < PresentDX12::iSwapChainBufferCount; i++)
+	{
+		LR(this->pSwapChain->GetBuffer(i, IID_PPV_ARGS(&pSwapChainBuffer[i])))
+		this->pDevice->CreateRenderTargetView(pSwapChainBuffer[i], nullptr, rtvHeapHandle);
+		rtvHeapHandle.Offset(1, uiRtvDescriptorSize);
+	}
+
+	D3D12_RESOURCE_DESC depthStencilDesc;
+	depthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	depthStencilDesc.Alignment = 0;
+	depthStencilDesc.Width = width;
+	depthStencilDesc.Height = height;
+	depthStencilDesc.DepthOrArraySize = 1;
+	depthStencilDesc.MipLevels = 1;
+	depthStencilDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
+	depthStencilDesc.SampleDesc.Count = 1;
+	depthStencilDesc.SampleDesc.Quality = 0;
+	depthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	depthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+	DXGI_FORMAT depthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+
+	CD3DX12_HEAP_PROPERTIES HeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+
+	D3D12_CLEAR_VALUE optClear;
+	optClear.Format = depthStencilFormat;
+	optClear.DepthStencil.Depth = 1.0f;
+	optClear.DepthStencil.Stencil = 0;
+	this->pDevice->CreateCommittedResource(
+		&HeapProperties,
+		D3D12_HEAP_FLAG_NONE,
+		&depthStencilDesc,
+		D3D12_RESOURCE_STATE_COMMON,
+		&optClear,
+		IID_PPV_ARGS(&pDepthStencilBuffer));
+
+	CD3DX12_RESOURCE_BARRIER ResourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(pDepthStencilBuffer, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
+	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+	dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+	dsvDesc.Format = depthStencilFormat;
+	dsvDesc.Texture2D.MipSlice = 0;
+	this->pDevice->CreateDepthStencilView(pDepthStencilBuffer, &dsvDesc, this->pDsvHeap->GetCPUDescriptorHandleForHeapStart());
+	this->pCommandList->ResourceBarrier(1, &ResourceBarrier);
+
+	LR(this->pCommandList->Close())
+	ID3D12CommandList* cmdsLists[] = { this->pCommandList };
+	this->pCommandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
+
+	FlushCommandQueue();
+	
+	mScreenViewport.TopLeftX = 0;
+	mScreenViewport.TopLeftY = 0;
+	mScreenViewport.Width = static_cast<float>(width);
+	mScreenViewport.Height = static_cast<float>(height);
+	mScreenViewport.MinDepth = 0.0f;
+	mScreenViewport.MaxDepth = 1.0f;
+
+	mScissorRect = { 0, 0, width, height };
 }
 
 void PresentDX12::GetDefaultSwapChainDesc(DXGI_SWAP_CHAIN_DESC& SwapChainDesc) const
@@ -148,21 +212,20 @@ void PresentDX12::GetDefaultSwapChainDesc(DXGI_SWAP_CHAIN_DESC& SwapChainDesc) c
 	GetClientWidthAndHeight(width, height);
 
 	//TODO: only one buffer including the front buffer?
-	SwapChainDesc.BufferCount = 1;
+	SwapChainDesc.BufferCount = 2;
 	SwapChainDesc.BufferDesc.Width = width;
 	SwapChainDesc.BufferDesc.Height = height;
 	SwapChainDesc.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;  // proper for D2D
 	SwapChainDesc.BufferDesc.RefreshRate.Numerator = 0;
 	SwapChainDesc.BufferDesc.RefreshRate.Denominator = 0;
-	//SwapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-	//SwapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_CENTERED;
-	//TODO: is rendering needed here (DXGI_USAGE_READ_ONLY)?
+	SwapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+	SwapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 	SwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	SwapChainDesc.OutputWindow = this->init.hWindow;
 	SwapChainDesc.SampleDesc.Count = 1;
 	SwapChainDesc.SampleDesc.Quality = 0;
-	//SwapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-	SwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD; // because BufferCount = 1 
+	SwapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+	SwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	SwapChainDesc.Windowed = true;
 }
 
@@ -262,10 +325,10 @@ void PresentDX12::CreateCommandQueueAndList(void)
 	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
 	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-	this->pDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&pCommandQueue));
-	this->pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&pCommandAllocator));
-	this->pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, pCommandAllocator, nullptr, IID_PPV_ARGS(&pCommandList));
-	this->pCommandList->Close();
+	LR(this->pDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&pCommandQueue)))
+	LR(this->pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&pCommandAllocator)))
+	LR(this->pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, pCommandAllocator, nullptr, IID_PPV_ARGS(&pCommandList)))
+	LR(this->pCommandList->Close())
 }
 
 void PresentDX12::CreateDescriptorHeaps()

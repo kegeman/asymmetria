@@ -151,7 +151,8 @@ LRESULT WINAPI DirectFrame::MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 		//	return 0;
 		case WM_SIZE:
 			LOGD("WM_SIZE is being received by MsgProc function and not processed.");
-			//	for(unsigned i = 0; i < RENDERING_DEVICE_COUNT; i++)
+			//TODO: if( mResizing ) - WM_EXITSIZEMOVE
+			//	for(unsigned i = 0; i < RENDERING_DEVICE_COUNT; i++)			
 			//		this->aRenderingDevice[i]->OnResizeWindow(LOWORD(lParam), HIWORD(lParam));
 				//TODO: Returning 0 or not would be better?
 			break;

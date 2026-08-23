@@ -25,6 +25,9 @@
 class PresentDX12 : public Present
 {
 private:
+	static const int iSwapChainBufferCount = 2;
+
+private:
 	mutable HRESULT hr;
 	PresentInit init;
 	ID3D12Debug* pDebugController;
@@ -40,9 +43,13 @@ private:
 	IDXGIFactory1* pDxgiFactory;
 	IDXGISwapChain* pSwapChain;
 	ID3D12DescriptorHeap* pRtvHeap;
-	ID3D12DescriptorHeap* pDsvHeap;
+	ID3D12DescriptorHeap* pDsvHeap; // Depth Stencil View
 	UINT64 uiCurrentFence;
 	UINT uiCurrentBackBuffer;
+	ID3D12Resource* pSwapChainBuffer[iSwapChainBufferCount];
+	ID3D12Resource* pDepthStencilBuffer;
+	D3D12_VIEWPORT mScreenViewport;
+	D3D12_RECT mScissorRect;
 
 public:
 	PresentDX12(void);
@@ -61,7 +68,4 @@ private:
 	void CreateCommandQueueAndList(void);
 	void CreateDescriptorHeaps(void);
 	void FlushCommandQueue(void);
-
-private:
-	static const int iSwapChainBufferCount = 2;	
 };
